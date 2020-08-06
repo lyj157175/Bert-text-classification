@@ -2,8 +2,10 @@ import torch
 import torch.nn as nn
 from pytorch_pretrained import BertModel, BertTokenizer
 
+
 class Config(object):
     """配置参数"""
+
     def __init__(self, dataset):
         # 模型名称
         self.model_name = "BruceBertRNN"
@@ -46,6 +48,7 @@ class Config(object):
         # droptout
         self.dropout = 0.5
 
+
 class Model(nn.Module):
 
     def __init__(self, config):
@@ -54,21 +57,30 @@ class Model(nn.Module):
         for param in self.bert.parameters():
             param.requires_grad = True
 
-        self.lstm = nn.LSTM(config.hidden_size, config.rnn_hidden, config.num_layers, batch_first=True, dropout=config.dropout, bidirectional=True)
-  
+        # 输入: input_size,(h0, c0)
+        # input_szie: [seq_len, batch, input_size],
+        # h0=c0: [num_layers*num_directions, batch, hidden_size]
+        # 输出: output, (hn, cn)
+        # output: [seq_len, batch, num_directions*hidden_size]
+        # hn=cn: [num_layers*num_directions, batch, hidden_size]
+        self.lstm = nn.LSTM(config.hidden_size, config.rnn_hidden, config.num_layers, batch_first=True,
+                            dropout=config.dropout, bidirectional=True)
+
         self.dropout = nn.Dropout(config.dropout)
 
         self.fc = nn.Linear(config.rnn_hidden * 2, config.num_classes)
 
-    def forward(self,x):
+    def forward(self, x):
         # x [ids, seq_len, mask]
         context = x[0]  # 对应输入的句子 shape[128,32]
         mask = x[2]  # 对padding部分进行mask shape[128,32]
-        encoder_out, text_cls = self.bert(context, attention_mask = mask, output_all_encoded_layers = False)
-        out, _ = self.lstm(encoder_out)
+
+        # encoder_out：[batch_size, seq_len, bert_dim]
+        # pooled: [batch_size, bert_dim]
+        # [128, 32, 768] [128,768]
+        encoder_out, text_cls = self.bert(context, attention_mask=mask, output_all_encoded_layers=False)
+        out, _ = self.lstm(encoder_out)   # [128, 32, 2*256]
         out = self.dropout(out)
-        out = out[:,-1,:]
-        out = self.fc(out)
+        out = out[:, -1, :]  # 将中间维度去掉 [128, 32, 512] -> [128, 512]
+        out = self.fc(out)  # [128, 10]
         return out
-
-

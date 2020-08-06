@@ -8,20 +8,20 @@ import train
 
 
 parser = argparse.ArgumentParser(description='Bert-Text-Classsification')
-parser.add_argument('--model', type=str, default='BruceBertRNN', help = 'choose a model BruceBert, BruceBertCNN, BruceBertRNN')
+parser.add_argument('--model', type=str, default='Bert', help = 'choose a model Bert, BertCNN, BertRNN')
 args = parser.parse_args()
 
 
 if __name__ == '__main__':
-    dataset = 'THUCNews'    #数据集地址
+    dataset = 'THUCNews'
     model_name = args.model
-    x = import_module('models.' + model_name)  #大项目时可以动态加载我们的模型
+    x = import_module('models.' + model_name)
     config = x.Config(dataset)
 
     np.random.seed(1)      
     torch.manual_seed(1)       
     torch.cuda.manual_seed_all(4)
-    torch.backends.cudnn.deterministic = True   #保证每次运行结果一样
+    torch.backends.cudnn.deterministic = True
 
     start_time = time.time()
 

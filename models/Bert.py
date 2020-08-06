@@ -53,11 +53,12 @@ class Model(nn.Module):
 
     def forward(self, x):   # x: tarin_iter
         # x [ids, seq_len, mask]
-        context = x[0]        #对应输入的句子 shape[128,32]
+        context = x[0]        #对应输入的句子 shape[128,32]  [batch_size, seq_len]
         mask = x[2]           #对padding部分进行mask shape[128,32]
 
         #经过bert层的输出，shape [128,768]
-        _, pooled = self.bert(context, attention_mask=mask, output_all_encoded_layers=False)  
+        # output_all_encoded_layers=False 代表只输出12层bert的最后一层
+        _, pooled = self.bert(context, attention_mask=mask, output_all_encoded_layers=False)   # [128, 768]
         out = self.fc(pooled)    # shape [128,10]
         return out
 
