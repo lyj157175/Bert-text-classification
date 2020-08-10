@@ -25,3 +25,11 @@ ERNIE：增强性BERT，和BERT一样的用法，主要用于中文
 |    ERNIR    |  94.09%  |
 | ERNIR+DPCNN |  94.20%  |
 
+
+
+
+
+
+
+
+
